@@ -1,10 +1,11 @@
 {
-    "name": "vendor/hashnamed",
-    "description": "Description of project hashnamed.",
+    "name": "w3ocom/hashnamed",
+    "description": "Working with functions whose names are hash from function body",
+    "license": "Apache-2.0",
     "authors": [
         {
-            "name": "AlexanderJer",
-            "email": "alex@ierusalim.com"
+            "name": "Alex W3O",
+            "email": "alex@w3o.com"
         }
     ],
     "autoload": {
