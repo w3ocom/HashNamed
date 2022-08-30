@@ -1,0 +1,19 @@
+{
+    "name": "vendor/hashnamed",
+    "description": "Description of project hashnamed.",
+    "authors": [
+        {
+            "name": "AlexanderJer",
+            "email": "alex@ierusalim.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "w3ocom\\HashNamed\\": "src/"
+        }
+    },
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
