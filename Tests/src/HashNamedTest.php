@@ -62,9 +62,6 @@ function test($a) {
 CODE;
         $this->assertEquals('fn_77873608c79f20ee77a94193b2ba9303a3621592', $this->object->installFunction($code));
         
-        //$this->expectError();
-        //$fn_name = $this->object->installFunction(' ("bad function parameter") ');
-        
         $this->expectException(\Exception::class);
         $this->object->installFunction("Bad functoin code {}");
     }
@@ -128,7 +125,6 @@ CODE;
 
     /**
      * @covers w3ocom\HashNamed\HashNamed::__call
-     * @todo   Implement test__call().
      */
     public function test__call() {
         $x = $this->object->fn_77873608c79f20ee77a94193b2ba9303a3621592(123);

@@ -13,7 +13,9 @@
             "w3ocom\\HashNamed\\": "src/"
         }
     },
-    "require": {},
+    "require": {
+        "php": ">=7.3"
+    },
     "require-dev": {
         "phpunit/phpunit": "*"
     }
