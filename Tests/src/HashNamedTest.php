@@ -60,7 +60,8 @@ function test($a) {
     return $a + 1;
 }
 CODE;
-        $this->assertEquals('fn_77873608c79f20ee77a94193b2ba9303a3621592', $this->object->installFunction($code));
+        $result = $this->object->installFunction($code);
+        $this->assertEquals('\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $result['call_name']);
         
         $this->expectException(\Exception::class);
         $this->object->installFunction("Bad functoin code {}");
@@ -70,24 +71,29 @@ CODE;
      * @covers w3ocom\HashNamed\HashNamed::loadHashNamedCode
      */
     public function testLoadHashNamedCode() {
-        // loading with good prefix
-        $good_prefix = '<' . '?php function fn_77873608c79f20ee77a94193b2ba9303a3621592';
-        $file_name = $this->object->LoadHashNamedCode('77873608c79f20ee77a94193b2ba9303a3621592', $good_prefix);
-        $this->assertIsString($file_name);
-        $this->assertTrue(file_exists($file_name));
+        // loading with hashnamed-name
+        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b');
+        $this->assertTrue(is_array($h_arr));
+        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
+        $this->assertEquals('\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['call_name']);
         
-        // loading with bad prefix
-        $file_name = $this->object->LoadHashNamedCode('77873608c79f20ee77a94193b2ba9303a3621592', '');
-        $this->assertIsString($file_name);
-        $this->assertTrue(file_exists($file_name));
+        // loading with test-name (will transform from hashnamed to plain-name)
+        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b', false);
+        $this->assertTrue(is_array($h_arr));
+        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
+        $this->assertEquals('\test', $h_arr['call_name']);
         
-        // try to load undefined hash
-        $result = $this->object->LoadHashNamedCode('a446bf034aa85ff330a58bb97250bc1072269bff', '');
-        $this->assertNull($result);
+        // loading with test-name again (not transform names)
+        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b', false);
+        $this->assertTrue(is_array($h_arr));
+        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
+        $this->assertEquals('\test', $h_arr['call_name']);
         
-        // try to load bad-length hash
-        $this->expectException(\Exception::class);
-        $result = $this->object->LoadHashNamedCode('a446bf034aa85ff330a58bb97250bc1072269bf', '');
+        // loading with hashnamed-name (will transform from plain-name to hashnamed)
+        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b');
+        $this->assertTrue(is_array($h_arr));
+        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
+        $this->assertEquals('\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['call_name']);
     }
 
     /**
@@ -95,15 +101,16 @@ CODE;
      */
     public function testLoadFunction() {
         // Successful loading:
-        $this->assertNull($this->object->loadFunction('fn_77873608c79f20ee77a94193b2ba9303a3621592'));
+        $h_arr = $this->object->loadFunction('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b');
+        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b',$h_arr['hashnamed_name']);
         
         // Try undefined function
         $result = $this->object->loadFunction('fn_a446bf034aa85ff330a58bb97250bc1072269bff');
-        $this->assertTrue(is_string($result));
+        $this->assertNull($result);
         
         // Try illegal functoin name
+        $this->expectException(\Exception::class);
         $result = $this->object->loadFunction('fn_a446bf034aa85ff330a58bb97250bc1072269bf');
-        $this->assertTrue(is_string($result));
     }
 
     /**
@@ -111,23 +118,27 @@ CODE;
      */
     public function test__callStatic() {
         // success
-        $x = HashNamed::fn_77873608c79f20ee77a94193b2ba9303a3621592(123);
+        $x = HashNamed::fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b(123);
         $this->assertEquals(124, $x);
         
         // install new function
-        $fn_name = HashNamed::installFunction("(\$a) { return \$a * 2; }");
-        $this->assertEquals('fn_3449e41850a2be0405f80929668c04a44ef3d2f7', $fn_name);
+        $h_arr = HashNamed::installFunction("function himars(\$a) { return \$a * 2; }");
+        $this->assertEquals('72fc6e9b602b9429345d9900a8ece529694c69b5dd220a03dcc0332e5954f269', $h_arr['hash']);
+        $this->assertEquals('himars', $h_arr['name']);
+        
+        $x = HashNamed::fn_72fc6e9b602b9429345d9900a8ece529694c69b5(50);
+        $this->assertEquals(100, $x);
         
         // undefined
         $this->expectException(\Exception::class);
-        $x = HashNamed::fn_77873608c79f20ee77a94193b2ba9303a3621593(123);
+        $x = HashNamed::fn_72fc6e9b602b9429345d9900a8ece529694c69b6(50);
     }
 
     /**
      * @covers w3ocom\HashNamed\HashNamed::__call
      */
     public function test__call() {
-        $x = $this->object->fn_77873608c79f20ee77a94193b2ba9303a3621592(123);
+        $x = $this->object->fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b(123);
         $this->assertEquals(124, $x);
     }
 
