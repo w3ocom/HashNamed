@@ -94,7 +94,8 @@ class HashNamed {
      * 
      * In:
      *   $hash40hex = 40-chars of hex-encoded left 20-bytes from sha256(code)
-     *   $prefix_code = the left part of the code, which will be removed if it is present
+     *   $save_hashnamed = true for save code with hashnamed-names, false for save code with source names
+     *   $expected_type = if null any types are accepted, otherwise only specified type will accepted
      * Out:
      *   NULL = code NOT found locally or remotely
      *   array = success, have keys:
@@ -102,7 +103,7 @@ class HashNamed {
      *      [hashnamed_name] = the name of this object, constructed from its body-hash
      *      [local_file] = string, full-path of the local file where code is saved
      *      [h_arr] = array of header-values
-     * 
+     *       ... and other keys...
      * 
      * @param string $hash40hex
      * @param string $prefix_code
