@@ -3,84 +3,7 @@ namespace w3ocom\HashNamed;
 
 class HashNamed extends HashNamedCore
 {
-    /**
-     * Store h_arr for hashnamed-obj when local-file is included
-     * @var array<array>
-     */
-    protected static array $loaded_hashnamed_arr = [];
 
-    /**
-     * Install specified function code to LOCAL-cache-dir
-     * 
-     * In:
-     *   function_code in string
-     * Out:
-     *   array = Successful, parameters in keys
-     * 
-     * ! An exception is thrown for all errors.
-     * !!! Be careful, this function does not check the validity of the function-code.
-     * !!! If the function-code is not valid, you may break the execution of the program.
-     * 
-     * @param string $function_code
-     * @return string
-     * @throws \Exception
-     */
-    public static function installFunction(string $function_code): array {
-
-        // install HashNamed code with type php-function
-        $h_arr = self::installHashNamedCode($function_code, 'php-function');
-
-        $local_file = $h_arr['local_file']; 
-        // loading function from saved-file
-        require_once $local_file;
-        self::$loaded_hashnamed_arr[$h_arr['hash40hex']] = $h_arr;
-        
-        $call_name = $h_arr['call_name'];
-        // checking for a successful function definition
-        if (!function_exists($call_name)) {
-            throw new \Exception("Function $call_name was not installed, but local file was created: $local_file");
-        }
-        
-        // return function name only
-        return $h_arr;
-    }
-
-    /**
-     * Install specified class code to LOCAL-cache-dir
-     * 
-     * In:
-     *   class_code in string
-     * Out:
-     *   array = Successful, parameters in keys
-     * 
-     * ! An exception is thrown for all errors.
-     * !!! Be careful, this function does not check the validity of the class-code.
-     * !!! If the class-code is not valid, you may break the execution of the program.
-     * 
-     * @param string $class_code
-     * @return string
-     * @throws \Exception
-     */
-    public static function installClass(string $class_code): array {
-
-        // install HashNamed code with type php-function
-        $h_arr = self::installHashNamedCode($class_code, 'php-class');
-
-        $local_file = $h_arr['local_file']; 
-        // loading function from saved-file
-        require_once $local_file;
-        self::$loaded_hashnamed_arr[$h_arr['hash40hex']] = $h_arr;
-        
-        $call_name = $h_arr['call_name'];
-        // checking for a successful function definition
-        if (!class_exists($call_name)) {
-            throw new \Exception("Class $call_name was not installed, but local file was created: $local_file");
-        }
-        
-        // return function name only
-        return $h_arr;
-    }
-    
     /**
      * Tries to load function
      *   if not found in LOCAL, tries to download from all known remote repositories
@@ -175,8 +98,7 @@ class HashNamed extends HashNamedCore
 
         return $h_arr;
     }
-    
-    
+
     public function __call(string $name, array $arguments) {
         return self::__callStatic($name, $arguments);
     }
