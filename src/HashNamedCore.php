@@ -67,9 +67,8 @@ class HashNamedCore extends HashNamedRepo {
         $repo_subdir = substr($hash40hex, 0, 2) . '/';
         
         foreach(self::$repositories_arr as $repo_key => $parameters) {
-            $repo_URL_left = self::getRepoURL($repo_key, $parameters);
-            if (!$repo_URL_left) continue;
-            $full_URL = $repo_URL_left . $repo_subdir . $hash40hex;
+            $full_URL = self::getRepoURL($repo_key, $repo_subdir, $hash40hex, $parameters);
+            if (!$full_URL) continue;
             $data_src = @file_get_contents($full_URL);
             if (empty($data_src)) continue; // No data - skip repo
             
