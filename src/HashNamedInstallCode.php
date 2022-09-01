@@ -144,18 +144,18 @@ class HashNamedInstallCode extends HashNamedCore
         // install HashNamed code with type php-function
         $h_arr = self::installHashNamedCode($function_code, 'php-function');
 
-        $local_file = $h_arr['local_file']; 
         // loading function from saved-file
+        $local_file = $h_arr['local_file']; 
         require_once $local_file;
+
         self::$loaded_hashnamed_arr[$h_arr['hash40hex']] = $h_arr;
         
-        $call_name = $h_arr['call_name'];
         // checking for a successful function definition
+        $call_name = $h_arr['call_name'];
         if (!function_exists($call_name)) {
             throw new \Exception("Function $call_name was not installed, but local file was created: $local_file");
         }
         
-        // return function name only
         return $h_arr;
     }
 
@@ -180,18 +180,18 @@ class HashNamedInstallCode extends HashNamedCore
         // install HashNamed code with type php-function
         $h_arr = self::installHashNamedCode($class_code, 'php-class');
 
+        // loading class code from saved-file
         $local_file = $h_arr['local_file']; 
-        // loading function from saved-file
         require_once $local_file;
+
         self::$loaded_hashnamed_arr[$h_arr['hash40hex']] = $h_arr;
         
         $call_name = $h_arr['call_name'];
-        // checking for a successful function definition
+        // checking for a successful class definition
         if (!class_exists($call_name)) {
             throw new \Exception("Class $call_name was not installed, but local file was created: $local_file");
         }
         
-        // return function name only
         return $h_arr;
     }
 }

@@ -178,6 +178,7 @@ class HashNamedCore extends HashNamedRepo {
             $call_name = $namespace . '\\' . $call_name;
 
             self::$hashnamed_call_name_arr[$hash40hex] = $call_name;
+
             $h_arr['call_name'] = $call_name;
             $h_arr['hashnamed_name'] = $hashnamed_name;
             $h_arr['local_file'] = $local_file;
