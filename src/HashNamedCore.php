@@ -10,10 +10,13 @@ class HashNamedCore {
     protected static array $repositories_arr = [];
     
     /**
-     * Store call_name for each loaded object
+     * Store call_names for each loaded hashnamed-obj
+     *  [hash40hex] => call_name
+     * this is necessary because call_name can be different and contain namespace
+     *
      * @var array<string>
      */
-    protected static array $names_to_loaded_map = [];
+    protected static array $hashnamed_call_name_arr = [];
     
     public static bool $accept_remote_renamed = true;
     
@@ -132,32 +135,42 @@ class HashNamedCore {
             
             if (!$h_arr) continue; // Header not detected, invalid format
             
-            // compare hash from header
+            // compare hash declared in the header with the requested hash
             if (substr($h_arr['hash'], 0, 40) !== $hash40hex) continue;
             
+            // check 'type', skip unknown types
+            if (empty(self::$type_prefix[$h_arr['type']])) continue; // undefined type
+
+            // compare type declared in the header with the expected type
             if ($expected_type && ($expected_type !== $h_arr['type'])) {
-                throw new \Exception("Hashnamed object $hash40hex was found, but it has an unexpected type:" . $h_arr['type']);
+                // if this code is not from local repository - skip it
+                if ($repo_key !== self::LOCAL_REPO_KEY) continue;
+                // if this code found in local-cache-dir with unexpected type
+                throw new \Exception("Hashnamed $hash40hex was found, but it has an unexpected type:" . $h_arr['type']);
             }
             
+            // make hashnamed_name from type-prefix and hash40hex
+            $hashnamed_name = self::$type_prefix[$h_arr['type']] . $hash40hex;
+            
             // check 'renamed'
-            if ($need_rename_back = !empty($h_arr['renamed'])) {
+            if ($is_hashnamed = !empty($h_arr['renamed'])) {
+                // if renamed is set, it may content alternative hashnamed-name, but this name must contain hash40hex
+                if (false !== strpos($h_arr['renamed'], $hash40hex)) {
+                    // if renamed contains hash40hex - accept this name
+                    $hashnamed_name = $h_arr['renamed'];
+                }
                 // if code contain hashnamed names, we need to rename back for verification
                 if (($repo_key !== self::LOCAL_REPO_KEY) && !self::$accept_remote_renamed) {
-                    // skip because we won't accept renamend code from remote repository
+                    // skip it because we won't accept renamed-code from remote repositories
+                    // to change this behavior, you may set self::$accept_remote_renamed = true
                     continue;
                 }
             }
-            
-            // check 'type'
-            if (empty(self::$type_prefix[$h_arr['type']])) continue; // undefined type
 
-            // create hashnamed-name by type from header
-            $hashnamed_name = self::$type_prefix[$h_arr['type']] . $hash40hex;
-
-            // cut body-data from source
+            // cut body-data from hashnamed-object
             $data_for_hash = \substr($data_src, $h_arr['_h'][0]);
             
-            if ($need_rename_back) {
+            if ($is_hashnamed) {
                 // rename back: replace all hashnamed-names to real-name
                 $data_for_hash = str_replace($hashnamed_name, $h_arr['name'], $data_for_hash);
             }
@@ -166,59 +179,64 @@ class HashNamedCore {
             $hash_of_body = hash('sha256', $data_for_hash);
 
             // hash verification
-            if (substr($hash_of_body, 0, 40) === $hash40hex) {
-                // GOOD! Hash is equal
-                
-                // get namespace
-                $namespace = $h_arr['namespace'] ?? '';
+            if (substr($hash_of_body, 0, 40) !== $hash40hex) continue;
 
-                // what name can be used to call this object
-                $call_name = $save_hashnamed ? $hashnamed_name : $h_arr['name'];
-                $call_name = $namespace . '\\' . $call_name;
+            // GOOD! Hash is equal
 
-                self::$names_to_loaded_map[$hashnamed_name] = $call_name;
-                self::$names_to_loaded_map[$h_arr['name']] = $call_name;
+            $need_save_to_local_file = true;
 
-                
-                if ($repo_key === self::LOCAL_REPO_KEY) {
-                    // data received from local-cache
-                    if ($need_rename_back === $save_hashnamed) {
-                        // if already named as need
-                        $h_arr['call_name'] = $call_name;
-                        $h_arr['hashnamed_name'] = $hashnamed_name;
-                        $h_arr['local_file'] = $full_URL;
+            if ($repo_key === self::LOCAL_REPO_KEY) {
+                // data received from local-cache
+                if ($is_hashnamed === $save_hashnamed) {
+                    // if already named as need
+                    $need_save_to_local_file = false;
+                }
+            }
 
-                        return $h_arr;
-                    }
+            // subfolder for save local_file
+            $local_file_sub = self::$repositories_arr[self::LOCAL_REPO_KEY] . $repo_subdir;
+            // make full local_file name from subfolder and hash40hex
+            $local_file = $local_file_sub . $hash40hex;
+
+            if ($need_save_to_local_file) {
+                // before save local_file check local-cache-dir and create if need
+                if (empty(realpath($local_file_sub)) && !mkdir($local_file_sub)) {
+                    throw new \Exception("Can't create sub-dir for storage data: $local_file_sub");
                 }
 
-                // file to save in local-cache-dir
-                $local_file = self::$repositories_arr[self::LOCAL_REPO_KEY] . $repo_subdir;
-                if (empty(realpath($local_file)) && !mkdir($local_file)) {
-                    throw new \Exception("Can't create sub-dir for storage data: $local_file");
-                }
-                $local_file .= $hash40hex;
-                
                 if ($save_hashnamed) {
-                    $h_arr['renamed'] = 1;
+                    $h_arr['renamed'] = $hashnamed_name;
+                    // rename from real_name to hashnamed_name
                     $data_for_write = str_replace($h_arr['name'], $hashnamed_name, $data_for_hash);
                 } else {
+                    // do not rename, save canonical code
                     $data_for_write = $data_for_hash;
                     $h_arr['renamed'] = null;
                 }
+
+                // make prefix with h_arr in HELML-header
                 $prefix = '<'."?php\n/*\n" . HELML::ToHELML($h_arr) . "*/\n\n";
-                
+
+                // save prefix and data
                 if (!file_put_contents($local_file, $prefix . $data_for_write)) {
                     throw new \Exception("Can't save received data to local-cache-dir");
                 }
-                
-                $h_arr['call_name'] = $call_name;
-                $h_arr['hashnamed_name'] = $hashnamed_name;
-                $h_arr['local_file'] = $local_file;
-
-                // Success
-                return $h_arr;
             }
+
+            // get namespace
+            $namespace = $h_arr['namespace'] ?? '';
+
+            // what name can be used to call this object
+            $call_name = $save_hashnamed ? $hashnamed_name : $h_arr['name'];
+            $call_name = $namespace . '\\' . $call_name;
+
+            self::$hashnamed_call_name_arr[$hash40hex] = $call_name;
+            $h_arr['call_name'] = $call_name;
+            $h_arr['hashnamed_name'] = $hashnamed_name;
+            $h_arr['local_file'] = $local_file;
+
+            // Success
+            return $h_arr;
         }
         // NOT FOUND
         return NULL;
@@ -270,7 +288,7 @@ class HashNamedCore {
         // prepare data_for_write
         $data_for_write = substr($code, $h_arr['_h'][0]);
         if ($save_hashnamed) {
-            $h_arr['renamed'] = 1;
+            $h_arr['renamed'] = $hashnamed_name;
             $data_for_write = str_replace($h_arr['name'], $hashnamed_name, $data_for_write);
         }
                 
