@@ -5,7 +5,7 @@ class HashNamedRepo {
 
     /**
      * left part of URL for downloading hashnamed-objects
-     * @var array<mixed>
+     * @var array<array<mixed>>
      */
     protected static array $repositories_arr = [];
 
@@ -54,26 +54,46 @@ class HashNamedRepo {
             if (!is_string($repo_URL_left) || empty($repo_URL_left)) {
                 throw new \InvalidArgumentException("Only string URL is accepted");
             }
+
             if (is_numeric($repo_key)) {
                 $repo_key = $repo_URL_left;
-                $repo_URL_left = true;
+                $repo_param_arr = [
+                    'url' => 1
+                ];
+            } else {
+                $repo_param_arr = [
+                    'url' => $repo_URL_left
+                ];                
             }
             if (empty(self::$repositories_arr[$repo_key])) {
-                self::$repositories_arr[$repo_key] = $repo_URL_left;
+                self::$repositories_arr[$repo_key] = $repo_param_arr;
                 $add_cnt++;
             }
         }
         return $add_cnt;
     }
     
-    public static function getRepoURL(string $repo_key, string $repo_subdir, string $hash40hex, $parameters = null): ?string {
-        $repo_URL_left = $parameters ?? self::$repositories_arr[$repo_key];
-        if (true === $repo_URL_left) {
-            $repo_URL_left = $repo_key;
-        } elseif (empty($parameters)) {
+    /**
+     * Make full-URL from specified hash40hex and specified repository
+     * 
+     * @param string $repo_key
+     * @param string $repo_subdir
+     * @param string $hash40hex
+     * @param null|array<string> $repo_params_arr
+     * @return string|null
+     */
+    public static function getRepoURL(string $repo_key, string $repo_subdir, string $hash40hex, ?array $repo_params_arr = null): ?string {
+        $repo_params_arr = $repo_params_arr ?? self::$repositories_arr[$repo_key];
+
+        if (empty($repo_params_arr['url'])) {
             return NULL;
-        } elseif (!is_string($repo_URL_left)) {
-            throw new \Exception("Unsupported repository parameters");
+        }
+
+        $repo_URL_left = $repo_params_arr['url'];
+
+        //  1 means url placed in repo_key
+        if (1 === $repo_URL_left) {
+            $repo_URL_left = $repo_key;
         }
 
         $full_URL = $repo_URL_left . $repo_subdir . $hash40hex;
@@ -89,6 +109,6 @@ class HashNamedRepo {
         if (!isset(self::$repositories_arr[self::LOCAL_REPO_KEY])) {
             return NULL;
         }
-        return self::$repositories_arr[self::LOCAL_REPO_KEY];
+        return self::$repositories_arr[self::LOCAL_REPO_KEY]['url'];
     }
 }

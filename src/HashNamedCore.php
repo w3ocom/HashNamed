@@ -66,12 +66,17 @@ class HashNamedCore extends HashNamedRepo {
 
         $repo_subdir = substr($hash40hex, 0, 2) . '/';
         
-        foreach(self::$repositories_arr as $repo_key => $parameters) {
-            $full_URL = self::getRepoURL($repo_key, $repo_subdir, $hash40hex, $parameters);
-            if (!$full_URL) continue;
+        foreach(self::$repositories_arr as $repo_key => $repo_params_arr) {
+
+            // make source URL by getRepoURL functoin
+            $full_URL = self::getRepoURL($repo_key, $repo_subdir, $hash40hex, $repo_params_arr);
+            if (!$full_URL) continue; // skip this repo
+
+            // get data from specified URL
             $data_src = @file_get_contents($full_URL);
             if (empty($data_src)) continue; // No data - skip repo
             
+            // get HELML-header from data
             $h_arr = HELML::getHeader($data_src, [
                 'hash' => 1,
                 'name' => 1,
@@ -80,7 +85,8 @@ class HashNamedCore extends HashNamedRepo {
                 'namespace' => 0,
             ]);
             
-            if (!$h_arr) continue; // Header not detected, invalid format
+            // if header not detected skip this invalid code
+            if (!$h_arr) continue; 
             
             // compare hash declared in the header with the requested hash
             if (substr($h_arr['hash'], 0, 40) !== $hash40hex) continue;
