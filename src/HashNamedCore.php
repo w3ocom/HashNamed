@@ -60,7 +60,7 @@ class HashNamedCore extends HashNamedRepo {
             throw new \Exception("Invalid hash40hex length");
         }
         
-        if (empty(self::$repositories_arr[self::LOCAL_REPO_KEY])) {
+        if (empty(self::getLocalRepo())) {
             throw new \Exception("HashNamed LOCAL-cache-dir MUST specified before");
         }
 
@@ -141,7 +141,7 @@ class HashNamedCore extends HashNamedRepo {
             }
 
             // subfolder for save local_file
-            $local_file_sub = self::$repositories_arr[self::LOCAL_REPO_KEY] . $repo_subdir;
+            $local_file_sub = self::getLocalRepo() . $repo_subdir;
             // make full local_file name from subfolder and hash40hex
             $local_file = $local_file_sub . $hash40hex;
 

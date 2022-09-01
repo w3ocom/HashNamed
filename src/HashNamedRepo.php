@@ -80,4 +80,15 @@ class HashNamedRepo {
 
         return $full_URL;
     }
+    
+    /**
+     * Return LOCAL-cache-dir or NULL if undefined
+     * @return string|null
+     */
+    public static function getLocalRepo(): ?string {
+        if (!isset(self::$repositories_arr[self::LOCAL_REPO_KEY])) {
+            return NULL;
+        }
+        return self::$repositories_arr[self::LOCAL_REPO_KEY];
+    }
 }

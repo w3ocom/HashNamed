@@ -14,7 +14,7 @@ class HashNamedInstallCode extends HashNamedCore
      */
     public static function installHashNamedCode(string $code, string $type = 'php-function', bool $save_hashnamed = true): array {
         // check local-cache-dir
-        if (empty(self::$repositories_arr[self::LOCAL_REPO_KEY])) {
+        if (empty(self::getLocalRepo())) {
             throw new \Exception("HashNamed LOCAL-cache-dir MUST specified before");
         }
         
@@ -36,7 +36,7 @@ class HashNamedInstallCode extends HashNamedCore
         
         // Start creating a file path to save the code.
         // 1) Make is path of sub-folder
-        $local_file = self::$repositories_arr[self::LOCAL_REPO_KEY]  . substr($hash40hex, 0, 2) . DIRECTORY_SEPARATOR;
+        $local_file = self::getLocalRepo() . substr($hash40hex, 0, 2) . DIRECTORY_SEPARATOR;
         
         // 2) Create this sub-folder if not exist
         if (empty(realpath($local_file)) && !mkdir($local_file)) {
