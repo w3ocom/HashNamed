@@ -1,24 +1,40 @@
 <?php
+/*
+type: php-class
+namespace: w3ocom\HashNamed
+name: HELML
+hash: fb0bf1f14b870c89726ae4b8ce4fc85907e7830b3994d3ece9ddbb6b76f783cf
+*/
+
 namespace w3ocom\HashNamed;
 /**
  * HELML = HEader-Like Markup Language
- *  Example:
-hash: 21479c639387cf0bea8a7fb3ef69106c0bb6def19d3ca6b1e90221765f3385c7
-name: HashNamedTestClass
-type: php-class
-renamed: C_21479c639387cf0bea8a7fb3ef69106c0bb6def1
- * 
+ * (see the example at the top of this file)
  */
-
 class HELML {
 
     /**
      * Detect HELML-header in data_src and parse if found
      * 
+     * when $get_all_fields is true, ALL fields found in the header will be returned
+     * when $get_all_fields is false, only the will fields specified in $fileds_arr will be returned
+     * 
+     * $fields_arr must have this format:
+     *   [
+     *      [name1] => required?,
+     *      [name2] => required?,
+     *       ...
+     *   ]
+     * if the field specified in fields_arr is not found,
+     *  then the behavior depends on the value of required:
+     *  if required? is not empty, then function return NULL immediately
+     *  if required? is empty, then this field value will be set to NULL
+     * All the fields listed in the fields_arr will be returned with some values
+     * 
      * @param string $data_src
-     * @param array $fields_arr
+     * @param array<bool> $fields_arr
      * @param bool $get_all_fields
-     * @return array|null
+     * @return array<mixed>|null
      */
     
     public static function getHeader(string $data_src, array $fields_arr = [], bool $get_all_fields = true): ?array {
@@ -103,6 +119,30 @@ class HELML {
         return $h_arr;
     }
     
+    /**
+     * Convert source array to HELML-format
+     * 
+     * if all values in $arr are not arrays, then  then the result will be the following:
+     * name1: value1
+     * name2: value2
+     * ...
+     * 
+     * if the value in the array will be an array,
+     * then the array values will be written under the same name, for example:
+     * $arr = ['name1' => 1, 'name2' => [7,8,9], 'name3' => 3] result will be returned:
+     * name1: 1
+     * name2: 7
+     * name2: 8
+     * name2: 9
+     * name3: 3
+     * 
+     * the rows in the returned result are delimited by the $eol value, default "\n"
+     * $eol is also added at the end of the last line
+     * 
+     * @param array<mixed> $arr
+     * @param string|null $eol
+     * @return string
+     */
     public static function toHELML(array $arr, ?string $eol = null): string
     {
         // calculate EOL
