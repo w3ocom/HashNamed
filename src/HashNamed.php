@@ -3,6 +3,11 @@ namespace w3ocom\HashNamed;
 
 class HashNamed extends HashNamedCore
 {
+    /**
+     * Store h_arr for hashnamed-obj when local-file is included
+     * @var array<array>
+     */
+    protected static array $loaded_hashnamed_arr = [];
 
     /**
      * Install specified function code to LOCAL-cache-dir
