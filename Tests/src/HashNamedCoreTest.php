@@ -29,7 +29,7 @@ class HashNamedCoreTest extends \PHPUnit\Framework\TestCase {
             throw new Exception("Can't create hash_named_cache directory for local-cache: $local_cache_dir");
         }
         $this->local_cache_dir = realpath($local_cache_dir);
-        $this->object = new $this->tst_class($this->local_cache_dir);
+        $this->object = new $this->tst_class($this->local_cache_dir, ['https://w3o.com/hashnamed/']);
     }
 
     /**
@@ -55,40 +55,91 @@ class HashNamedCoreTest extends \PHPUnit\Framework\TestCase {
         $obj = new HashNamedCore('not_fund_dir');
     }
 
+    public function loadHashNamedCodeProvider() {
+        return [
+//-------------------
+'code_from_remote_repo' => [
+    '21479c639387cf0bea8a7fb3ef69106c0bb6def1', // hash40hex
+    true, //save_hashnamed
+    'C_', // type
+    '\\C_21479c639387cf0bea8a7fb3ef69106c0bb6def1', // call_name
+],
+//-------------------
+'fn_good' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d000ee0b',
+    true, // save_hashnamed
+    'fn_',
+    '\\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', // namespace
+],
+//-------------------
+'non_existens_hash' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d0000000',
+    true,
+    NULL,
+    NULL
+],
+//-------------------
+'fn_good_hashnamed1' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d000ee0b',
+    true, // save_hashnamed
+    'fn_',
+    '\\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b'    //namespace
+],
+//-------------------
+// loading functoin 'test' without renaming
+'fn_good_testname1' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d000ee0b',
+    false, // save_hashnamed
+    'fn_',
+    '\\test'    //namespace
+],
+//-------------------
+// loading function 'test' without renaming again (not transform names)
+'fn_good_testname2' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d000ee0b',
+    false, // save_hashnamed
+    'fn_',
+    '\\test'    //namespace
+],
+//------------------
+// loading function 'test' with renaming to hashnamed_name
+'fn_good_hashnamed2' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d000ee0b',
+    true, // save_hashnamed
+    'fn_',
+    '\\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b'
+],
+//------------------
+// try load unexpected type
+'unexpected_type' => [
+    'cf9a51c914fd6ef41e06ac4078f05373d000ee0b',
+    true,
+    false,
+    false
+],
+//------------------
+        ];
+    }
+    
     /**
+     * @dataProvider loadHashNamedCodeProvider
      * @covers w3ocom\HashNamed\HashNamedCore::loadHashNamedCode
      */
-    public function testLoadHashNamedCode() {
-        // try loading a non-existent hash
-        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d0000000');
-        $this->assertNull($h_arr);
-
-        // loading with hashnamed-name
-        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b');
-        $this->assertTrue(is_array($h_arr));
-        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
-        $this->assertEquals('\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['call_name']);
-        
-        // loading with test-name (will transform from hashnamed to plain-name)
-        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b', false);
-        $this->assertTrue(is_array($h_arr));
-        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
-        $this->assertEquals('\test', $h_arr['call_name']);
-        
-        // loading with test-name again (not transform names)
-        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b', false);
-        $this->assertTrue(is_array($h_arr));
-        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
-        $this->assertEquals('\test', $h_arr['call_name']);
-        
-        // loading with hashnamed-name (will transform from plain-name to hashnamed)
-        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b');
-        $this->assertTrue(is_array($h_arr));
-        $this->assertEquals('fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['hashnamed_name']);
-        $this->assertEquals('\fn_cf9a51c914fd6ef41e06ac4078f05373d000ee0b', $h_arr['call_name']);
-        
-        // try load unexpected type
-        $this->expectException(\Exception::class);
-        $h_arr = $this->object->LoadHashNamedCode('cf9a51c914fd6ef41e06ac4078f05373d000ee0b', true, 'php-class');
+    public function testLoadHashNamedCode($hash40hex, $save_hashnamed, $expected_pf, $exp_call_name) {
+        if (false === $expected_pf) {
+            // try load unexpected type
+            $this->expectException(\Exception::class);
+            $h_arr = $this->object->LoadHashNamedCode($hash40hex, $save_hashnamed, 'php-class');
+        }
+        // try loading code from remote repository
+        $h_arr = $this->object->LoadHashNamedCode($hash40hex, $save_hashnamed);
+        if ($h_arr) {
+            $this->assertTrue(is_array($h_arr));
+            $expected_hashnamed_name = $expected_pf . $hash40hex;
+            $this->assertEquals($expected_hashnamed_name, $h_arr['hashnamed_name']);
+            $this->assertEquals($exp_call_name, $h_arr['call_name']);
+        } else {
+            $this->assertNull($h_arr);
+        }
     }
 }

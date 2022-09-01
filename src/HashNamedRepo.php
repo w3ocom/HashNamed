@@ -25,10 +25,10 @@ class HashNamedRepo {
      *   HashNamed::addRepositories(['repository-url1', 'repository-url2', ...])
      * 
      * @param string $local_cache_dir
-     * @param null|array<string> $repositories_arr
+     * @param null|array<string> $add_repo_url_arr
      * @throws \Exception
      */
-    public function __construct(string $local_cache_dir, ?array $repositories_arr = NULL) {
+    public function __construct(string $local_cache_dir, ?array $add_repo_url_arr = NULL) {
 
         $local_cache_real_path = realpath($local_cache_dir . DIRECTORY_SEPARATOR);
         if (empty($local_cache_real_path)) {
@@ -36,21 +36,21 @@ class HashNamedRepo {
         }
         self::addRepositories([self::LOCAL_REPO_KEY => $local_cache_real_path . DIRECTORY_SEPARATOR]);
         
-        if ($repositories_arr) {
-            self::addRepositories($repositories_arr);
+        if ($add_repo_url_arr) {
+            self::addRepositories($add_repo_url_arr);
         }
     }
     
     /**
      * Add repositories URL-s array to HashNamed-class static array
      * 
-     * @param array<string> $repositories_arr
+     * @param array<string> $add_repo_url_arr
      * @return int
      * @throws \InvalidArgumentException
      */
-    public static function addRepositories(array $repositories_arr): int {
+    public static function addRepositories(array $add_repo_url_arr): int {
         $add_cnt = 0;
-        foreach($repositories_arr as $repo_key => $repo_URL_left) {
+        foreach($add_repo_url_arr as $repo_key => $repo_URL_left) {
             if (!is_string($repo_URL_left) || empty($repo_URL_left)) {
                 throw new \InvalidArgumentException("Only string URL is accepted");
             }
@@ -119,9 +119,6 @@ class HashNamedRepo {
      * @return bool
      */
     public static function isLocalRepo(string $repo_key): bool {
-        if ($repo_key === self::LOCAL_REPO_KEY) {
-            return true;
-        }
         return !empty(self::$repositories_arr[$repo_key]['is_local']);
     }
 

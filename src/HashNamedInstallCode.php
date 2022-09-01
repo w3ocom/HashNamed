@@ -136,13 +136,14 @@ class HashNamedInstallCode extends HashNamedCore
      * !!! If the function-code is not valid, you may break the execution of the program.
      * 
      * @param string $function_code
+     * @param bool $save_hashnamed
      * @return string
      * @throws \Exception
      */
-    public static function installFunction(string $function_code): array {
+    public static function installFunction(string $function_code, bool $save_hashnamed = true): array {
 
         // install HashNamed code with type php-function
-        $h_arr = self::installHashNamedCode($function_code, 'php-function');
+        $h_arr = self::installHashNamedCode($function_code, 'php-function', $save_hashnamed);
 
         // loading function from saved-file
         $local_file = $h_arr['local_file']; 
@@ -172,13 +173,14 @@ class HashNamedInstallCode extends HashNamedCore
      * !!! If the class-code is not valid, you may break the execution of the program.
      * 
      * @param string $class_code
+     * @param bool $save_hashnamed
      * @return string
      * @throws \Exception
      */
-    public static function installClass(string $class_code): array {
+    public static function installClass(string $class_code, bool $save_hashnamed = true): array {
 
         // install HashNamed code with type php-function
-        $h_arr = self::installHashNamedCode($class_code, 'php-class');
+        $h_arr = self::installHashNamedCode($class_code, 'php-class', $save_hashnamed);
 
         // loading class code from saved-file
         $local_file = $h_arr['local_file']; 
