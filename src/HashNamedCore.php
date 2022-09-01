@@ -14,6 +14,10 @@ class HashNamedCore extends HashNamedRepo {
     
     public static bool $accept_remote_renamed = true;
     
+    /**
+     * Prefixes for function and class names
+     * @var array<string>
+     */
     protected static array $type_prefix = [
         'php-class' => 'C_',
         'php-function' => 'fn_',
@@ -21,7 +25,7 @@ class HashNamedCore extends HashNamedRepo {
 
     /**
      * Store h_arr for hashnamed-obj when local-file is included
-     * @var array<array>
+     * @var array<array<string>>
      */
     protected static array $loaded_hashnamed_arr = [];
     
@@ -44,8 +48,9 @@ class HashNamedCore extends HashNamedRepo {
      *       ... and other keys...
      * 
      * @param string $hash40hex
-     * @param string $prefix_code
-     * @return array|null
+     * @param bool $save_hashnamed
+     * @param string $expected_type
+     * @return null|array<string>
      * @throws \Exception
      */
     public static function loadHashNamedCode(string $hash40hex, bool $save_hashnamed = true, ?string $expected_type = null): ?array {
@@ -61,7 +66,9 @@ class HashNamedCore extends HashNamedRepo {
 
         $repo_subdir = substr($hash40hex, 0, 2) . '/';
         
-        foreach(self::$repositories_arr as $repo_key => $repo_URL_left) {
+        foreach(self::$repositories_arr as $repo_key => $parameters) {
+            $repo_URL_left = self::getRepoURL($repo_key, $parameters);
+            if (!$repo_URL_left) continue;
             $full_URL = $repo_URL_left . $repo_subdir . $hash40hex;
             $data_src = @file_get_contents($full_URL);
             if (empty($data_src)) continue; // No data - skip repo

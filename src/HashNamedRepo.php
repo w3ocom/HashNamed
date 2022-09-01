@@ -5,7 +5,7 @@ class HashNamedRepo {
 
     /**
      * left part of URL for downloading hashnamed-objects
-     * @var array<string>
+     * @var array<mixed>
      */
     protected static array $repositories_arr = [];
 
@@ -55,16 +55,26 @@ class HashNamedRepo {
                 throw new \InvalidArgumentException("Only string URL is accepted");
             }
             if (is_numeric($repo_key)) {
-                $old_index = array_search($repo_URL_left, self::$repositories_arr);
-                if (false === $old_index) {
-                    self::$repositories_arr[] = $repo_URL_left;
-                    $add_cnt++;
-                }
-            } else {
+                $repo_key = $repo_URL_left;
+                $repo_URL_left = true;
+            }
+            if (empty(self::$repositories_arr[$repo_key])) {
                 self::$repositories_arr[$repo_key] = $repo_URL_left;
                 $add_cnt++;
             }
         }
         return $add_cnt;
+    }
+    
+    public static function getRepoURL(string $repo_key, $parameters = null): ?string {
+        $repo_URL_left = $parameters ?? self::$repositories_arr[$repo_key];
+        if (true === $repo_URL_left) {
+            $repo_URL_left = $repo_key;
+        } elseif (empty($parameters)) {
+            return NULL;
+        } elseif (!is_string($repo_URL_left)) {
+            throw new \Exception("Unsupported repository parameters");
+        }
+        return $repo_URL_left;
     }
 }
