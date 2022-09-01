@@ -15,7 +15,7 @@ class HashNamedRepo {
     public const LOCAL_REPO_KEY = 'LOCAL';
     
     /**
-     * Init HashNamed is easy way to set local_cache_dir
+     * Calling HashNamed constructor is easy way to set local_cache_dir
      * 
      *  Alternatively, you may not call this constructor, but instead call this static function:
      *   HashNamed::addRepositories([self::LOCAL_REPO_KEY => 'YOUR_LOCAL_CACHE_DIR'])
@@ -82,7 +82,7 @@ class HashNamedRepo {
      * @param string $repo_key
      * @param string $repo_subdir
      * @param string $hash40hex
-     * @param null|array<string> $repo_params_arr
+     * @param null|array<mixed> $repo_params_arr
      * @return string|null
      */
     public static function getRepoURL(string $repo_key, string $repo_subdir, string $hash40hex, ?array $repo_params_arr = null): ?string {
@@ -112,6 +112,12 @@ class HashNamedRepo {
         return self::$repositories_arr[self::LOCAL_REPO_KEY]['url'] ?? NULL;
     }
     
+    /**
+     * Is this repository marked as "LOCAL" ?
+     *
+     * @param string $repo_key
+     * @return bool
+     */
     public static function isLocalRepo(string $repo_key): bool {
         if ($repo_key === self::LOCAL_REPO_KEY) {
             return true;
