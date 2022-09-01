@@ -97,7 +97,7 @@ class HashNamedCore extends HashNamedRepo {
             // compare type declared in the header with the expected type
             if ($expected_type && ($expected_type !== $h_arr['type'])) {
                 // if this code is not from local repository - skip it
-                if ($repo_key !== self::LOCAL_REPO_KEY) continue;
+                if (!self::isLocalRepo($repo_key)) continue;
                 // if this code found in local-cache-dir with unexpected type
                 throw new \Exception("Hashnamed $hash40hex was found, but it has an unexpected type:" . $h_arr['type']);
             }
@@ -113,7 +113,7 @@ class HashNamedCore extends HashNamedRepo {
                     $hashnamed_name = $h_arr['renamed'];
                 }
                 // if code contain hashnamed names, we need to rename back for verification
-                if (($repo_key !== self::LOCAL_REPO_KEY) && !self::$accept_remote_renamed) {
+                if (!self::isLocalRepo($repo_key) && !self::$accept_remote_renamed) {
                     // skip it because we won't accept renamed-code from remote repositories
                     // to change this behavior, you may set self::$accept_remote_renamed = true
                     continue;
@@ -138,7 +138,7 @@ class HashNamedCore extends HashNamedRepo {
 
             $need_save_to_local_file = true;
 
-            if ($repo_key === self::LOCAL_REPO_KEY) {
+            if (self::isLocalRepo($repo_key)) {
                 // data received from local-cache
                 if ($is_hashnamed === $save_hashnamed) {
                     // if already named as need

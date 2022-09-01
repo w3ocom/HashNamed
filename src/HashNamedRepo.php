@@ -58,12 +58,15 @@ class HashNamedRepo {
             if (is_numeric($repo_key)) {
                 $repo_key = $repo_URL_left;
                 $repo_param_arr = [
-                    'url' => 1
+                    'url' => 1, // 1 means 'url is in repo_key'
                 ];
             } else {
                 $repo_param_arr = [
                     'url' => $repo_URL_left
-                ];                
+                ];
+                if ($repo_key === self::LOCAL_REPO_KEY) {
+                    $repo_param_arr['is_local'] = true;
+                }
             }
             if (empty(self::$repositories_arr[$repo_key])) {
                 self::$repositories_arr[$repo_key] = $repo_param_arr;
@@ -106,9 +109,14 @@ class HashNamedRepo {
      * @return string|null
      */
     public static function getLocalRepo(): ?string {
-        if (!isset(self::$repositories_arr[self::LOCAL_REPO_KEY])) {
-            return NULL;
-        }
-        return self::$repositories_arr[self::LOCAL_REPO_KEY]['url'];
+        return self::$repositories_arr[self::LOCAL_REPO_KEY]['url'] ?? NULL;
     }
+    
+    public static function isLocalRepo(string $repo_key): bool {
+        if ($repo_key === self::LOCAL_REPO_KEY) {
+            return true;
+        }
+        return !empty(self::$repositories_arr[$repo_key]['is_local']);
+    }
+
 }
