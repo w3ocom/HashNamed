@@ -93,9 +93,18 @@ class HashNamedInstallCode extends HashNamedCore
         if (false !== $hash_begin_pos) {
             $hash_begin_pos += 4;
         }
-        // skip spaces
+        // skip spaces from begin of code
         $hash_begin_pos += strspn($code, " \n\r", $hash_begin_pos);
-
+        
+        // skip header-comment
+        if (substr($code, $hash_begin_pos, 2) === '/*') {
+            if ($end_of_comment_pos = strpos($code, '*/', $hash_begin_pos + 2)) {
+                $hash_begin_pos = $end_of_comment_pos + 2;
+                // skip spaces after header-comment
+                $hash_begin_pos += strspn($code, " \n\r", $hash_begin_pos);
+            }
+        }
+        
         // store body_begin_pos
         $_h = [$hash_begin_pos];
 
