@@ -206,11 +206,16 @@ class AutoLoader
         
         // detect class-name
         if (
-            preg_match("/[\s]+(class|interface)[\s]+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*([\sa-zA-Z0-9_\\\\]*)[{]{1}/i", $code_header, $matches)
+            preg_match("/
+    (?'type'class|interface)[\s]+
+    (?'name'[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*
+    (?'middle'[\\\\a-zA-Z0-9_\x80-\xff\s]*)[\s]*
+    (\\{)
+                    /ix", $code_header, $matches)
         ) {
-            $php_type = 'php-' . $matches[1];
-            $class_name = $short_name = $matches[2];
-            $class_add_def = $matches[3];
+            $php_type = 'php-' . $matches['type'];
+            $class_name = $short_name = $matches['name'];
+            $class_add_def = $matches['middle'];
 
             //detect namespace
             if (preg_match("/namespace[\s]+([a-zA-Z_\x80-\xff][a-zA-Z0-9\\\\_\x80-\xff]*)[\s]*[;]/", $code_header, $matches)) {
