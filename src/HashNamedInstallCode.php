@@ -72,10 +72,15 @@ class HashNamedInstallCode extends HashNamedCore
         // switch by type
         if ($type === 'php-function') {
             // regex for function-name
-            $regex = "/function[ ]+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*[(]/";
+            $regex = "/function[ ]+(?'name'[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*[(]/ix";
         } elseif ($type === 'php-class') {
             // regex for class-name
-            $regex = "/class[ ]+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*/";
+            $regex = "/
+    (?'type'class|interface)[\s]+
+    (?'name'[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*
+    (?'middle'[\\\\a-zA-Z0-9_\x80-\xff\s]*)[\s]*
+    (\\{)
+                    /ix";
         } else {
             // unsupported type
             return NULL;
@@ -112,15 +117,16 @@ class HashNamedInstallCode extends HashNamedCore
         $h_arr = compact('_h', 'type');
 
         // cut header from code
-        $code_header = substr($code, $hash_begin_pos, $code_body_pos - $hash_begin_pos);
+        $code_header = substr($code, $hash_begin_pos, $code_body_pos - $hash_begin_pos + 1);
 
         //detect namespace
-        if (preg_match("/namespace[ ]+([a-zA-Z_\x80-\xff].*)[;]/", $code_header, $matches)) {
+        //if (preg_match("/namespace[ ]+([a-zA-Z_\x80-\xff].*)[;]/", $code_header, $matches)) {
+        if (preg_match("/namespace[\s]+([a-zA-Z_\x80-\xff][a-zA-Z0-9\\\\_\x80-\xff]*)[\s]*[;]/i", $code_header, $matches)) {
             $h_arr['namespace'] = trim($matches[1]);
         }
         
         if (preg_match($regex, $code_header, $matches)) {
-            $h_arr['name'] = $matches[1];
+            $h_arr['name'] = $matches['name'];
         } else {
             return NULL;
         }
