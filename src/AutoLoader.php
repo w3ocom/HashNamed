@@ -209,9 +209,8 @@ class AutoLoader
             preg_match("/
     (?'type'class|interface)[\s]+
     (?'name'[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*
-    (?'middle'[\\\\a-zA-Z0-9_\x80-\xff\s]*)[\s]*
-    (\\{)
-                    /ix", $code_header, $matches)
+    (?'middle'[\\\\a-zA-Z0-9\\,_\x80-\xff\s]*)[\s]*
+    (\\{)/ix", $code_header, $matches)
         ) {
             $php_type = 'php-' . $matches['type'];
             $class_name = $short_name = $matches['name'];
