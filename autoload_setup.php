@@ -15,9 +15,8 @@ public const NAMESPACE_DIR = "hashnamed/namespaces_map";    // REPLACE TO YOUR V
 /*
  * Let's put the code in __construct() and then create self to call it
  */
-public function __construct() {
-    
-    //$this->tryToFindVendorDir("../vendor", "autoload.php");
+public function __construct()
+{
     $this->tryToFindVendorDir("vendor", "autoload.php");
     $this->tryToFindAutoLoadPattern("./autoload.php");
     $this->tryToFindMySelfSrcDir("src");
@@ -138,6 +137,10 @@ public function __construct() {
     public function setAutoLoadFileToVendorDir($autoload_code) {
         $a_name = $this->old_autoload_file;
         if (is_file($a_name)) {
+            // compare old code with this code
+            $old_code = file_get_contents($a_name);
+            if ($old_code === $autoload_code) return; // no need to write new code
+            
             $rename_old_autoload_to = $this->vendor_dir . DIRECTORY_SEPARATOR . 'autoload_' . date("Y-m-d_H-i-s") . '.php';
             if (!rename($a_name, $rename_old_autoload_to))
                 die("Can't rename old-autoload file " . $a_name . " to $rename_old_autoload_to");
