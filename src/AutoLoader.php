@@ -168,7 +168,8 @@ class AutoLoader
                         $class_map_file = $chk_path . DIRECTORY_SEPARATOR . 'class_map.php';
                         if (is_file($class_map_file)) {
                             self::$checked_namespaces_arr[$curr_ns] = self::NS_FOLDER_HAVE_FILE;
-                            $class_to_path_arr = (include $class_map_file);
+                            // will return true if already included, return array if it's loaded now
+                            $class_to_path_arr = (require_once $class_map_file); 
                             if (is_array($class_to_path_arr)) {
                                 self::$class_to_path_arr = array_merge(self::$class_to_path_arr, $class_to_path_arr);
                                 $changed = true;
