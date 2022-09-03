@@ -76,7 +76,7 @@ class HashNamedInstallCode extends HashNamedCore
         } elseif ($type === 'php-class') {
             // regex for class-name
             $regex = "/
-    (?'type'class|interface)[\s]+
+    (?'type'class|interface|trait)[\s]+
     (?'name'[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*
     (?'middle'[\\\\a-zA-Z0-9\\,_\x80-\xff\s]*)[\s]*
     (\\{)/ix";
