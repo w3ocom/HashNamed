@@ -84,12 +84,8 @@ class AutoLoader
         
         // verification hashnamed_name
         $hash40hex = substr($hashnamed_name, -40);
-        if (strlen($hash40hex) === 40) {
-            // Verify by convert from hex to bin and vice versa
-            $hash20bin = @hex2bin($hash40hex);
-            if (strlen($hash20bin) == 20) {
-                return $base_dir . DIRECTORY_SEPARATOR . substr($hash40hex, 0, 2) . DIRECTORY_SEPARATOR . $hash40hex;
-            }
+        if (strlen($hash40hex) === 40 && ctype_xdigit($hash40hex)) {
+            return $base_dir . DIRECTORY_SEPARATOR . substr($hash40hex, 0, 2) . DIRECTORY_SEPARATOR . $hash40hex;
         }
         return NULL;        
     }
@@ -207,7 +203,7 @@ class AutoLoader
         // detect class-name
         if (
             preg_match("/
-    (?'type'class|interface)[\s]+
+    (?'type'class|interface|trait)[\s]+
     (?'name'[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)[\s]*
     (?'middle'[\\\\a-zA-Z0-9\\,_\x80-\xff\s]*)[\s]*
     (\\{)/ix", $code_header, $matches)
