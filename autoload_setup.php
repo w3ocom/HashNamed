@@ -17,7 +17,7 @@ public const NAMESPACE_DIR = "hashnamed/namespaces_map";    // REPLACE TO YOUR V
  */
 public function __construct()
 {
-    $this->tryToFindVendorDir("vendor", "autoload.php");
+    $this->tryToFindVendorDir("../../../vendor", "autoload.php");
     $this->tryToFindAutoLoadPattern("./autoload.php");
     $this->tryToFindMySelfSrcDir("src");
     $this->tryToFindMySelfClass('autoloader_class', "AutoLoader.php");
@@ -157,7 +157,7 @@ public function __construct()
     }
     
     public function createMapForVendorDir() {
-        $this->mapper_obj->addDir($this->vendor_dir);
+        $this->mapper_obj->addDir(dirname($this->vendor_dir));
     }
     
     public function checkAutoLoading() {
