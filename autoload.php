@@ -7,3 +7,5 @@ new AutoLoader(
     "hashnamed/hashnamed_cache",
     "hashnamed/namespaces_map"
 );
+
+//[AUTOLOAD_FILES]
