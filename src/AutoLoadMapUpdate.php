@@ -43,10 +43,11 @@ class AutoLoadMapUpdate {
         if (!is_dir($dir_path)) {
             return "It is not directory path: $dir_path";
         }
+        $dir_path .= DIRECTORY_SEPARATOR;
         $s = scandir($dir_path);
         foreach($s as $path) {
             if (substr($path, 0, 1) === '.') continue;
-            $full_path = $dir_path . DIRECTORY_SEPARATOR . $path;
+            $full_path = $dir_path . $path;
             if (is_file($full_path)) {
                 $this->addFile($full_path);
             } else {
@@ -57,7 +58,7 @@ class AutoLoadMapUpdate {
     }
     
     public function addFile(string $class_path): ?string {
-        $class_def_arr = AutoLoader::detectClassDefinition($class_path);
+        $class_def_arr = AutoLoader::detectClassDefinition($class_path, 4096, 1000000);
         if (!$class_def_arr) {
             return "Can't find class-header in file: $class_path";
         }
@@ -92,7 +93,9 @@ class AutoLoadMapUpdate {
     
     public static function removeEmptyDirUp(string $dir_path): bool {
         $s = scandir($dir_path);
-        if (count($s) !== 2) return false;
+        if (count($s) !== 2) {
+            return false;
+        }
         $res = rmdir($dir_path);
         self::removeEmptyDirUp(dirname($dir_path));
         return $res;
@@ -136,25 +139,40 @@ class AutoLoadMapUpdate {
         if ($changed) {
             // clear Autoload-checked_namespaces because there are changed
             AutoLoader::$checked_namespaces_arr = [];
-            
-            // write $arr to $class_map_file
-            $fp = fopen($class_map_file, 'wb');
-            if (!$fp) {
-                throw new \Exception("Can't open file for write: $class_map_file");
-            }
-            while ($fp) {
-                if (!fwrite($fp, '<' . "?php\nreturn [\n")) break;
-                foreach($arr as $cls => $path) {
-                    if (!fwrite($fp, "\t'$cls' => '$path',\n")) break 2;
+
+            $err = $this->writeClassMapFile($class_map_file, $arr);
+            if ($err) return $err;
+        }
+        // Success
+        return NULL;
+    }
+
+    public static function writeClassMapFile(string $class_map_file, array $arr): ?string {
+        // write $arr to $class_map_file
+        $fp = fopen($class_map_file, 'wb');
+        if (!$fp) {
+            throw new \Exception("Can't open file for write: $class_map_file");
+        }
+        while ($fp) {
+            if (!fwrite($fp, '<' . "?php\nreturn [\n")) break;
+            foreach($arr as $key => $value) {
+                if (is_array($value)) {
+                    if (!fwrite($fp, "\t'$key' => [\n")) break 2;   
+                    foreach($value as $v) {
+                        if (!fwrite($fp, "\t'$v',\n")) break 3;
+                    }
+                    if (!fwrite($fp, "],\n")) break 2;   
+                } else {
+                    if (!fwrite($fp, "\t'$key' => '$value',\n")) break 2;
                 }
-                if (!fwrite($fp, "];\n")) break;
-                fclose($fp);
-                $fp = null;
             }
-            if ($fp) {
-                fclose($fp);
-                return "Can't write data to file: $class_map_file";
-            }
+            if (!fwrite($fp, "];\n")) break;
+            fclose($fp);
+            $fp = null;
+        }
+        if ($fp) {
+            fclose($fp);
+            return "Can't write data to file: $class_map_file";
         }
         // Success
         return NULL;
