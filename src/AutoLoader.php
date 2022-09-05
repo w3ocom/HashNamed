@@ -37,6 +37,7 @@ class AutoLoader
     public const NS_FOLDER_EXIST = 1;
     public const NS_FOLDER_HAVE_FILE = 2;
     
+    public static bool $use_require_once = true;
     /**
      * Elements contain:
      *  string path to php-class-file
@@ -169,10 +170,20 @@ class AutoLoader
                         if (is_file($class_map_file)) {
                             self::$checked_namespaces_arr[$curr_ns] = self::NS_FOLDER_HAVE_FILE;
                             // will return true if already included, return array if it's loaded now
-                            $class_to_path_arr = (require_once $class_map_file); 
+                            if (self::$use_require_once) {
+                                $class_to_path_arr = (require_once $class_map_file);
+                            } else {
+                                $class_to_path_arr = (include $class_map_file);
+                            }
                             if (is_array($class_to_path_arr)) {
                                 self::$class_to_path_arr = array_merge(self::$class_to_path_arr, $class_to_path_arr);
                                 $changed = true;
+                                // load files from key '0'
+                                if (!empty($class_to_path_arr['0']) && is_array($class_to_path_arr['0'])) {
+                                    foreach($class_to_path_arr['0'] as $file_req_once) {
+                                        require_once $file_req_once;
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -190,7 +201,7 @@ class AutoLoader
         return $changed;
     }
     
-    public static function detectClassDefinition(string $local_file, int $load_length = 4096): ?array {
+    public static function detectClassDefinition(string $local_file, int $load_length = 4096, int $next_length = 0): ?array {
         // get header from code, first 2Kb
         $code_header = file_get_contents($local_file, false, null, 0, $load_length);
         if (empty($code_header)) {
@@ -222,6 +233,8 @@ class AutoLoader
             }
             
             return compact('namespace', 'class_name', 'short_name', 'php_type');
+        } elseif ($next_length) {
+            return self::detectClassDefinition($local_file, $next_length, 0);
         }
         
         return NULL;
